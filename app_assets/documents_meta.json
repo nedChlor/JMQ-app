@@ -1,0 +1,212 @@
+[
+  {
+    "id": 1,
+    "category_id": 2,
+    "title_ru": "Двигатель 4GB2.4D 1.5T Обслуживание",
+    "title_en": "01.01_Dvigatel_4GB2.4D_1.5T_Obsluzhivanie",
+    "file_type": "docx",
+    "original_filename": "01.01_Dvigatel_4GB2.4D_1.5T_Obsluzhivanie.docx",
+    "text_length": 314928,
+    "file_size": 10747944
+  },
+  {
+    "id": 2,
+    "category_id": 2,
+    "title_ru": "Двигатель 4GB2.4D 1.5T Руководство",
+    "title_en": "01.01_Dvigatel_4GB2.4D_1.5T_Rukovodstvo",
+    "file_type": "pdf",
+    "original_filename": "01.01_Dvigatel_4GB2.4D_1.5T_Rukovodstvo.pdf",
+    "text_length": 283085,
+    "file_size": 5725778
+  },
+  {
+    "id": 3,
+    "category_id": 3,
+    "title_ru": "Двигатель 4GB2.4E 1.5T Euro6 Обслуживание",
+    "title_en": "01.02_Dvigatel_4GB2.4E_1.5T_Euro6_Obsluzhivanie",
+    "file_type": "docx",
+    "original_filename": "01.02_Dvigatel_4GB2.4E_1.5T_Euro6_Obsluzhivanie.docx",
+    "text_length": 208506,
+    "file_size": 12304294
+  },
+  {
+    "id": 4,
+    "category_id": 3,
+    "title_ru": "Двигатель 4GB2.4E Электронный контроль",
+    "title_en": "01.02_Dvigatel_4GB2.4E_Elektrokontrol",
+    "file_type": "pptx",
+    "original_filename": "01.02_Dvigatel_4GB2.4E_Elektrokontrol.pptx",
+    "text_length": 60003,
+    "file_size": 9799770
+  },
+  {
+    "id": 5,
+    "category_id": 3,
+    "title_ru": "Двигатель 4GB2.4E Механика",
+    "title_en": "01.02_Dvigatel_4GB2.4E_Mekhanika",
+    "file_type": "pptx",
+    "original_filename": "01.02_Dvigatel_4GB2.4E_Mekhanika.pptx",
+    "text_length": 45489,
+    "file_size": 27382110
+  },
+  {
+    "id": 6,
+    "category_id": 5,
+    "title_ru": "Трансмиссия CVT Punch Проверка Неисправности",
+    "title_en": "02.01_Transmissiya_CVT_Punch_Proverka_Problem",
+    "file_type": "pptx",
+    "original_filename": "02.01_Transmissiya_CVT_Punch_Proverka_Problem.pptx",
+    "text_length": 24756,
+    "file_size": 19313833
+  },
+  {
+    "id": 7,
+    "category_id": 5,
+    "title_ru": "Трансмиссия CVT Punch Обучение",
+    "title_en": "02.01_Transmissiya_CVT_Punch_Training",
+    "file_type": "pptx",
+    "original_filename": "02.01_Transmissiya_CVT_Punch_Training.pptx",
+    "text_length": 103690,
+    "file_size": 20906216
+  },
+  {
+    "id": 8,
+    "category_id": 5,
+    "title_ru": "Трансмиссия CVT Punch VT2 VT3 Сервис Руководство",
+    "title_en": "02.01_Transmissiya_CVT_Punch_VT2_VT3_Service_Manual",
+    "file_type": "pdf",
+    "original_filename": "02.01_Transmissiya_CVT_Punch_VT2_VT3_Service_Manual.pdf",
+    "text_length": 165166,
+    "file_size": 9369634
+  },
+  {
+    "id": 9,
+    "category_id": 6,
+    "title_ru": "Трансмиссия MF622D35 Механика",
+    "title_en": "02.02_Transmissiya_MF622D35_Mekhanika",
+    "file_type": "docx",
+    "original_filename": "02.02_Transmissiya_MF622D35_Mekhanika.docx",
+    "text_length": 158262,
+    "file_size": 13092843
+  },
+  {
+    "id": 10,
+    "category_id": 6,
+    "title_ru": "Трансмиссия MF622D35 Обучение",
+    "title_en": "02.02_Transmissiya_MF622D35_Training",
+    "file_type": "pptx",
+    "original_filename": "02.02_Transmissiya_MF622D35_Training.pptx",
+    "text_length": 18115,
+    "file_size": 3099408
+  },
+  {
+    "id": 11,
+    "category_id": 7,
+    "title_ru": "03 Шасси Obshchee",
+    "title_en": "03_Shassi_Obshchee",
+    "file_type": "docx",
+    "original_filename": "03_Shassi_Obshchee.docx",
+    "text_length": 395981,
+    "file_size": 71213456
+  },
+  {
+    "id": 12,
+    "category_id": 9,
+    "title_ru": "Кузов Структура",
+    "title_en": "04.01_Kuzov_Struktura",
+    "file_type": "docx",
+    "original_filename": "04.01_Kuzov_Struktura.docx",
+    "text_length": 220856,
+    "file_size": 35923285
+  },
+  {
+    "id": 13,
+    "category_id": 10,
+    "title_ru": "Кузов Электрооборудование",
+    "title_en": "04.02_Kuzov_Elektrooborudovanie",
+    "file_type": "docx",
+    "original_filename": "04.02_Kuzov_Elektrooborudovanie.docx",
+    "text_length": 449210,
+    "file_size": 35774741
+  },
+  {
+    "id": 14,
+    "category_id": 12,
+    "title_ru": "Электрика Принципиальные Схемы",
+    "title_en": "05.01_Elektrika_Principialnye_Shemy",
+    "file_type": "pdf",
+    "original_filename": "05.01_Elektrika_Principialnye_Shemy.pdf",
+    "text_length": 242293,
+    "file_size": 25913321
+  },
+  {
+    "id": 15,
+    "category_id": 13,
+    "title_ru": "Электрика AVM Круговой Обзор",
+    "title_en": "05.02_Elektrika_AVM_Krugovoy_Obzor",
+    "file_type": "pdf",
+    "original_filename": "05.02_Elektrika_AVM_Krugovoy_Obzor.pdf",
+    "text_length": 6565,
+    "file_size": 1542897
+  },
+  {
+    "id": 16,
+    "category_id": 13,
+    "title_ru": "Электрика AVM Система",
+    "title_en": "05.02_Elektrika_AVM_Sistema",
+    "file_type": "pptx",
+    "original_filename": "05.02_Elektrika_AVM_Sistema.pptx",
+    "text_length": 10923,
+    "file_size": 7479002
+  },
+  {
+    "id": 17,
+    "category_id": 14,
+    "title_ru": "Электрика TPMS Давление Шин",
+    "title_en": "05.03_Elektrika_TPMS_Davlenie_Shin",
+    "file_type": "pdf",
+    "original_filename": "05.03_Elektrika_TPMS_Davlenie_Shin.pdf",
+    "text_length": 4132,
+    "file_size": 761639
+  },
+  {
+    "id": 18,
+    "category_id": 15,
+    "title_ru": "Калибровка Адаптация",
+    "title_en": "06.01_Kalibrovka_Adaptaciya",
+    "file_type": "docx",
+    "original_filename": "06.01_Kalibrovka_Adaptaciya.docx",
+    "text_length": 63817,
+    "file_size": 9556480
+  },
+  {
+    "id": 19,
+    "category_id": 15,
+    "title_ru": "Калибровка Сопоставление",
+    "title_en": "06.01_Kalibrovka_Sopostavlenie",
+    "file_type": "docx",
+    "original_filename": "06.01_Kalibrovka_Sopostavlenie.docx",
+    "text_length": 63912,
+    "file_size": 9565400
+  },
+  {
+    "id": 20,
+    "category_id": 15,
+    "title_ru": "Калибровка Сопоставление",
+    "title_en": "06.01_Kalibrovka_Sopostavlenie",
+    "file_type": "pdf",
+    "original_filename": "06.01_Kalibrovka_Sopostavlenie.pdf",
+    "text_length": 49031,
+    "file_size": 2583982
+  },
+  {
+    "id": 21,
+    "category_id": 17,
+    "title_ru": "MP5 Обновление ПО Руководство",
+    "title_en": "99.01_MP5_Obnovlenie_PO_Rukovodstvo",
+    "file_type": "pdf",
+    "original_filename": "99.01_MP5_Obnovlenie_PO_Rukovodstvo.pdf",
+    "text_length": 4257,
+    "file_size": 260314
+  }
+]

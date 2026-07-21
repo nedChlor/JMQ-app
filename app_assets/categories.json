@@ -1,0 +1,138 @@
+[
+  {
+    "id": 1,
+    "name_ru": "Двигатель",
+    "name_en": "Engine",
+    "icon": "engine",
+    "parent_id": null,
+    "sort_order": 1
+  },
+  {
+    "id": 2,
+    "name_ru": "HFC4GB2.4D (1.5T)",
+    "name_en": "HFC4GB2.4D (1.5T)",
+    "icon": "engine",
+    "parent_id": 1,
+    "sort_order": 1
+  },
+  {
+    "id": 3,
+    "name_ru": "HFC4GB2.4E (1.5T Euro6)",
+    "name_en": "HFC4GB2.4E (1.5T Euro6)",
+    "icon": "engine",
+    "parent_id": 1,
+    "sort_order": 2
+  },
+  {
+    "id": 4,
+    "name_ru": "Трансмиссия",
+    "name_en": "Transmission",
+    "icon": "transmission",
+    "parent_id": null,
+    "sort_order": 2
+  },
+  {
+    "id": 5,
+    "name_ru": "CVT Punch (вариатор)",
+    "name_en": "CVT Punch (CVT)",
+    "icon": "transmission",
+    "parent_id": 4,
+    "sort_order": 1
+  },
+  {
+    "id": 6,
+    "name_ru": "MF622D35 (мех. КПП)",
+    "name_en": "MF622D35 (Manual)",
+    "icon": "transmission",
+    "parent_id": 4,
+    "sort_order": 2
+  },
+  {
+    "id": 7,
+    "name_ru": "Шасси",
+    "name_en": "Chassis",
+    "icon": "chassis",
+    "parent_id": null,
+    "sort_order": 3
+  },
+  {
+    "id": 8,
+    "name_ru": "Кузов",
+    "name_en": "Body",
+    "icon": "body",
+    "parent_id": null,
+    "sort_order": 4
+  },
+  {
+    "id": 9,
+    "name_ru": "Структура кузова",
+    "name_en": "Body Structure",
+    "icon": "body",
+    "parent_id": 8,
+    "sort_order": 1
+  },
+  {
+    "id": 10,
+    "name_ru": "Электрооборудование",
+    "name_en": "Electrical Equipment",
+    "icon": "body",
+    "parent_id": 8,
+    "sort_order": 2
+  },
+  {
+    "id": 11,
+    "name_ru": "Электрические системы",
+    "name_en": "Electrical Systems",
+    "icon": "electrical",
+    "parent_id": null,
+    "sort_order": 5
+  },
+  {
+    "id": 12,
+    "name_ru": "Принципиальные схемы",
+    "name_en": "Circuit Diagrams",
+    "icon": "electrical",
+    "parent_id": 11,
+    "sort_order": 1
+  },
+  {
+    "id": 13,
+    "name_ru": "AVM (камера 360°)",
+    "name_en": "AVM (360° Camera)",
+    "icon": "electrical",
+    "parent_id": 11,
+    "sort_order": 2
+  },
+  {
+    "id": 14,
+    "name_ru": "TPMS (давление в шинах)",
+    "name_en": "TPMS (Tire Pressure)",
+    "icon": "electrical",
+    "parent_id": 11,
+    "sort_order": 3
+  },
+  {
+    "id": 15,
+    "name_ru": "Калибровка",
+    "name_en": "Calibration",
+    "icon": "calibration",
+    "parent_id": null,
+    "sort_order": 6
+  },
+  {
+    "id": 16,
+    "name_ru": "Обновления ПО",
+    "name_en": "Firmware Updates",
+    "icon": "firmware",
+    "parent_id": null,
+    "sort_order": 99
+  },
+  {
+    "id": 17,
+    "name_ru": "MP5 (мультимедиа)",
+    "name_en": "MP5 (Multimedia)",
+    "icon": "firmware",
+    "parent_id": 16,
+    "sort_order": 1
+  }
+]

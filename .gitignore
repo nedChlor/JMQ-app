@@ -1,0 +1,29 @@
+# ============================================================
+# JMQ Service Manual — .gitignore
+# ============================================================
+
+# --- Raw source data (large binaries) ---
+src/data_raw/documents/
+src/data_raw/dtc_source.xlsx
+
+# --- Generated developer artifacts ---
+src/output/
+
+# --- Generated app assets ---
+app_assets/db/
+app_assets/pdf/
+
+# --- Python cache ---
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- IDE ---
+.idea/
+.vscode/
+*.swp
