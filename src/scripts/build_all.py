@@ -11,7 +11,7 @@ Outputs:
   src/output/              ← developer artifacts (JSON, CSV, docs)
 """
 
-import json, csv, re, sqlite3, os, shutil, sys, subprocess
+import json, csv, re, sqlite3, shutil, sys, subprocess
 from pathlib import Path
 from collections import defaultdict
 
@@ -225,6 +225,17 @@ def build_documents(src_dir, cat_dir_map):
 # =========================================================================
 import openpyxl
 DTC_RE = re.compile(r'^(?:0x[0-9A-Fa-f]+|[PBCU]\d{4,6})$')
+CJK_RE = re.compile(r'[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+')
+
+def split_cjk(text):
+    if not text:
+        return text, ''
+    cjk_blocks = CJK_RE.findall(text)
+    clean = CJK_RE.sub('', text).strip()
+    clean = re.sub(r' {2,}', ' ', clean)
+    cn = ' '.join(cjk_blocks).strip()
+    return clean, cn
+
 ECU_NORMALIZE = {
     'TBOX': 'TBOX', 'Tbox': 'TBOX',
     'HVAC自动': 'HVAC', 'HVAC电动': 'HVAC',
@@ -274,6 +285,14 @@ def extract_sheet(ws, sheet, model, ecu_hint):
             if a and ('ECU' in str(a).upper() or '\u63a7\u5236\u5668' in str(a)):
                 has_ecu_col = True
                 break
+        if not has_ecu_col:
+            for r in range(2, min(6, max_row + 1)):
+                a = ws.cell(r, 1).value
+                if a and DTC_RE.match(str(a).strip()):
+                    break
+                if a and not str(a).strip().isdigit() and len(str(a).strip()) > 1:
+                    has_ecu_col = True
+                    break
 
     code_col = meaning_col = None
     for r in range(1, min(6, max_row + 1)):
@@ -306,6 +325,10 @@ def extract_sheet(ws, sheet, model, ecu_hint):
         if has_ecu_col:
             if r in merged:
                 current_ecu = normalize_ecu(merged[r])
+            else:
+                a = ws.cell(r, 1).value
+                if a and not str(a).strip().isdigit() and not DTC_RE.match(str(a).strip()):
+                    current_ecu = normalize_ecu(str(a).strip())
         if current_ecu is None:
             continue
 
@@ -314,16 +337,20 @@ def extract_sheet(ws, sheet, model, ecu_hint):
             continue
         code = str(code).strip().upper()
 
-        meaning = ws.cell(r, meaning_col).value
-        if not meaning:
-            meaning = ws.cell(r, meaning_col + 1).value
-        meaning = ' '.join(str(meaning).split()) if meaning else ''
+        meaning_raw = ws.cell(r, meaning_col).value
+        if not meaning_raw:
+            meaning_raw = ws.cell(r, meaning_col + 1).value
+        meaning_raw = ' '.join(str(meaning_raw).split()) if meaning_raw else ''
+        meaning_en, meaning_cn = split_cjk(meaning_raw)
+        if not meaning_en:
+            continue
 
         ecu = normalize_ecu(current_ecu)
         results.append({
             'model': model, 'ecu': ecu,
             'code': code, 'dtc_type': 'H' if code[:2] == '0X' else code[0],
-            'meaning_en': meaning,
+            'meaning_en': meaning_en,
+            'meaning_cn': meaning_cn,
         })
     return results
 
@@ -412,9 +439,9 @@ def build_db(documents, dtc_codes, categories):
     conn.executemany('INSERT INTO documents VALUES (?,?,?,?,?,?,?,?,?,?)', data)
 
     # DTC codes
-    data = [(d['model'], d['ecu'], d['code'], d['dtc_type'], d['meaning_en'])
+    data = [(d['model'], d['ecu'], d['code'], d['dtc_type'], d['meaning_en'], d.get('meaning_cn', ''))
             for d in dtc_codes]
-    conn.executemany('INSERT INTO dtc_codes (vehicle_model, ecu, code, dtc_type, meaning_en) VALUES (?,?,?,?,?)', data)
+    conn.executemany('INSERT INTO dtc_codes (vehicle_model, ecu, code, dtc_type, meaning_en, meaning_ru) VALUES (?,?,?,?,?,?)', data)
 
     # Restore preserved RU translations
     if existing_ru:
@@ -600,7 +627,7 @@ copy_pdfs()
 print('\n6. Writing developer & app outputs...')
 write_developer_outputs(categories, documents, dtc_codes, db_path=OUT_DB / 'jmq_service_manual.db')
 
-print('\n7. Building DTC↔document cross-reference...')
+print('\n7. Building DTC<->document cross-reference...')
 crossref_script = Path(__file__).resolve().parent / 'build_crossref.py'
 subprocess.run([sys.executable, str(crossref_script)], check=True)
 

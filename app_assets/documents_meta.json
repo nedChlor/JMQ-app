@@ -102,7 +102,7 @@
   {
     "id": 11,
     "category_id": 7,
-    "title_ru": "Шасси: общее описание",
+    "title_ru": "03 Шасси Obshchee",
     "title_en": "03_Shassi_Obshchee",
     "file_type": "docx",
     "original_filename": "03_Shassi_Obshchee.docx",
@@ -132,7 +132,7 @@
   {
     "id": 14,
     "category_id": 12,
-    "title_ru": "Электрические системы: принципиальные схемы",
+    "title_ru": "Электрика Принципиальные Схемы",
     "title_en": "05.01_Elektrika_Principialnye_Shemy",
     "file_type": "pdf",
     "original_filename": "05.01_Elektrika_Principialnye_Shemy.pdf",
@@ -142,7 +142,7 @@
   {
     "id": 15,
     "category_id": 13,
-    "title_ru": "Электрические системы: AVM круговой обзор",
+    "title_ru": "Электрика AVM Круговой Обзор",
     "title_en": "05.02_Elektrika_AVM_Krugovoy_Obzor",
     "file_type": "pdf",
     "original_filename": "05.02_Elektrika_AVM_Krugovoy_Obzor.pdf",
@@ -152,7 +152,7 @@
   {
     "id": 16,
     "category_id": 13,
-    "title_ru": "Электрические системы: AVM система",
+    "title_ru": "Электрика AVM Система",
     "title_en": "05.02_Elektrika_AVM_Sistema",
     "file_type": "pptx",
     "original_filename": "05.02_Elektrika_AVM_Sistema.pptx",
@@ -162,7 +162,7 @@
   {
     "id": 17,
     "category_id": 14,
-    "title_ru": "Электрические системы: TPMS давление в шинах",
+    "title_ru": "Электрика TPMS Давление Шин",
     "title_en": "05.03_Elektrika_TPMS_Davlenie_Shin",
     "file_type": "pdf",
     "original_filename": "05.03_Elektrika_TPMS_Davlenie_Shin.pdf",
@@ -182,7 +182,7 @@
   {
     "id": 19,
     "category_id": 15,
-    "title_ru": "Калибровка: сопоставление (текст)",
+    "title_ru": "Калибровка Сопоставление",
     "title_en": "06.01_Kalibrovka_Sopostavlenie",
     "file_type": "docx",
     "original_filename": "06.01_Kalibrovka_Sopostavlenie.docx",
@@ -192,7 +192,7 @@
   {
     "id": 20,
     "category_id": 15,
-    "title_ru": "Калибровка: сопоставление (схемы)",
+    "title_ru": "Калибровка Сопоставление",
     "title_en": "06.01_Kalibrovka_Sopostavlenie",
     "file_type": "pdf",
     "original_filename": "06.01_Kalibrovka_Sopostavlenie.pdf",

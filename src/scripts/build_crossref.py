@@ -7,7 +7,6 @@ Adds:
 3. Search view for the Flutter app
 """
 import sqlite3, re, time
-from pathlib import Path
 from collections import defaultdict
 
 DB_PATH = r'C:\Users\nedch\Documents\JMQ App\app_assets\db\jmq_service_manual.db'
@@ -145,10 +144,29 @@ conn.execute('''
 conn.execute('CREATE INDEX IF NOT EXISTS idx_dcl_lookup ON dtc_document_links(code, vehicle_model)')
 conn.execute('CREATE INDEX IF NOT EXISTS idx_dcl_doc ON dtc_document_links(document_id)')
 conn.execute('CREATE INDEX IF NOT EXISTS idx_ecu_cats_ecu ON ecu_categories(ecu)')
+
+# ============================================================
+# 5. Document → Model mapping
+# ============================================================
+conn.execute('DROP TABLE IF EXISTS document_models')
+conn.execute('''
+    CREATE TABLE document_models (
+        document_id INTEGER NOT NULL,
+        vehicle_model TEXT NOT NULL,
+        PRIMARY KEY (document_id, vehicle_model)
+    )
+''')
+
+# All 21 documents belong to J7 (the only model with documents for MVP)
+doc_ids = [r[0] for r in conn.execute('SELECT id FROM documents')]
+for did in doc_ids:
+    conn.execute('INSERT INTO document_models VALUES (?, ?)', (did, 'J7'))
+
+print(f'Document models: {len(doc_ids)} documents for J7')
 conn.commit()
 
 # ============================================================
-# 5. Example queries (verify)
+# 6. Example queries (verify)
 # ============================================================
 print('\n=== Search demo ===')
 print('\nScenario: User enters P0765 + J7')
