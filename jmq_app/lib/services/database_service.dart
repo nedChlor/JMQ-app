@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
@@ -108,7 +109,8 @@ class DatabaseService {
       args.add(limit.toString());
       final rows = await db.rawQuery(sql, args);
       return rows.map((r) => DtcCode.fromMap(r)).toList();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('FTS5 search failed (not supported on this device): $e');
       return searchDtc(query, model: model, limit: limit);
     }
   }
@@ -137,16 +139,15 @@ class DatabaseService {
 
   static Future<Map<String, dynamic>> getStats() async {
     final db = await database;
-    final vehicles = (await db.query('vehicles')).length;
-    final categories = (await db.query('categories')).length;
-    final documents = (await db.query('documents')).length;
-    final dtc = (await db.rawQuery('SELECT COUNT(*) as c FROM dtc_codes')).first['c'] as int;
-    return {
-      'vehicles': vehicles,
-      'categories': categories,
-      'documents': documents,
-      'dtc': dtc,
-    };
+    final rows = await db.rawQuery('''
+      SELECT 'vehicles' as k, COUNT(*) as v FROM vehicles
+      UNION ALL SELECT 'categories', COUNT(*) FROM categories
+      UNION ALL SELECT 'documents', COUNT(*) FROM documents
+      UNION ALL SELECT 'dtc', COUNT(*) FROM dtc_codes
+    ''');
+    final m = <String, dynamic>{};
+    for (var r in rows) { m[r['k'] as String] = r['v']; }
+    return m;
   }
 
   static Future<int> getDatabaseSize() async {
@@ -159,11 +160,11 @@ class DatabaseService {
 
   static Future<Map<int, int>> getDocumentCountPerCategory() async {
     final db = await database;
-    final rows = await db.query('documents', columns: ['category_id']);
+    final rows = await db.rawQuery(
+        'SELECT category_id, COUNT(*) as cnt FROM documents GROUP BY category_id');
     final map = <int, int>{};
     for (var r in rows) {
-      final catId = r['category_id'] as int;
-      map[catId] = (map[catId] ?? 0) + 1;
+      map[r['category_id'] as int] = r['cnt'] as int;
     }
     return map;
   }

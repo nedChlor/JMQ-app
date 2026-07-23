@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../models/document.dart';
@@ -13,6 +14,7 @@ class FullTextSearchScreen extends StatefulWidget {
 
 class _FullTextSearchScreenState extends State<FullTextSearchScreen> {
   final _controller = TextEditingController();
+  Timer? _debounce;
   List<Document> _results = [];
   bool _loading = false;
   bool _searched = false;
@@ -20,6 +22,7 @@ class _FullTextSearchScreenState extends State<FullTextSearchScreen> {
   @override
   void initState() {
     super.initState();
+    _controller.addListener(_onTextChanged);
     if (widget.initialQuery != null) {
       _controller.text = widget.initialQuery!;
       _search();
@@ -28,8 +31,17 @@ class _FullTextSearchScreenState extends State<FullTextSearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
+    _controller.removeListener(_onTextChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onTextChanged() {
+    _debounce?.cancel();
+    final q = _controller.text.trim();
+    if (q.length < 3) { setState(() => _results = []); return; }
+    _debounce = Timer(const Duration(milliseconds: 400), _search);
   }
 
   void _search() async {
