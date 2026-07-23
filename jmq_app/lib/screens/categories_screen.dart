@@ -25,7 +25,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _loadVehicles() async {
-    final v = await DatabaseService.getVehicles();
+    final v = await DatabaseService.it.getVehicles();
     if (mounted) setState(() => _vehicles = v);
   }
 
@@ -35,7 +35,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       if (mounted) setState(() => _hasDocs = true);
       return;
     }
-    final ids = await DatabaseService.getDocIdsForModel(model);
+    final ids = await DatabaseService.it.getDocIdsForModel(model);
     if (mounted) setState(() => _hasDocs = ids.isNotEmpty);
   }
 
@@ -74,7 +74,7 @@ class _CategoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Category>>(
-      future: DatabaseService.getCategories(),
+      future: DatabaseService.it.getCategories(),
       builder: (_, snap) {
         if (!snap.hasData) return const Center(child: CircularProgressIndicator());
         final cats = snap.data!;
@@ -104,6 +104,7 @@ class _CategoryTile extends StatefulWidget {
 class _CategoryTileState extends State<_CategoryTile> {
   List<Document>? _docs;
   Map<int, int>? _docCounts;
+  bool _loading = true;
 
   @override
   void initState() {
@@ -112,9 +113,10 @@ class _CategoryTileState extends State<_CategoryTile> {
   }
 
   void _load() async {
-    final docs = await DatabaseService.getDocuments(categoryId: widget.parent.id);
-    final counts = await DatabaseService.getDocumentCountPerCategory();
-    if (mounted) setState(() { _docs = docs; _docCounts = counts; });
+    setState(() => _loading = true);
+    final docs = await DatabaseService.it.getDocuments(categoryId: widget.parent.id);
+    final counts = await DatabaseService.it.getDocumentCountPerCategory();
+    if (mounted) setState(() { _docs = docs; _docCounts = counts; _loading = false; });
   }
 
   int _totalDocs() {
@@ -144,7 +146,9 @@ class _CategoryTileState extends State<_CategoryTile> {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push('/documents/${c.id}', extra: c),
             )),
-          if (docs.isNotEmpty)
+          if (_loading && _docs == null)
+            const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()))
+          else if (docs.isNotEmpty)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

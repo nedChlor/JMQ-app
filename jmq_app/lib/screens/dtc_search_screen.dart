@@ -50,7 +50,7 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
   }
 
   void _loadVehicles() async {
-    final v = await DatabaseService.getVehicles();
+    final v = await DatabaseService.it.getVehicles();
     if (mounted) setState(() => _vehicles = v);
   }
 
@@ -66,9 +66,9 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
       final isCode = RegExp(r'^[PBCU0-9Xx]+$').hasMatch(partial);
       List<DtcCode> list;
       if (isCode) {
-        list = await DatabaseService.findDtcByPartialCode(partial, model: _selectedModel);
+        list = await DatabaseService.it.findDtcByPartialCode(partial, model: _selectedModel);
       } else {
-        list = await DatabaseService.searchDtcFts(partial, model: _selectedModel, limit: 8);
+        list = await DatabaseService.it.searchDtcFts(partial, model: _selectedModel, limit: 8);
       }
       if (mounted) setState(() => _suggestions = list);
     });
@@ -83,7 +83,7 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
     setState(() { _searching = true; _detailItem = null; _results = []; _suggestions = []; _error = null; });
 
     try {
-      final list = await DatabaseService.searchDtc(q, model: _selectedModel);
+      final list = await DatabaseService.it.searchDtc(q, model: _selectedModel);
       if (!mounted) return;
       if (list.length == 1) {
         setState(() { _detailItem = list.first; _searching = false; });
@@ -378,8 +378,8 @@ class _DtCDetailWidgetState extends State<_DtCDetailWidget> {
   }
 
   void _loadExtra() async {
-    final links = await DatabaseService.getDtcDocumentLinks(widget.dtc.code, model: widget.model);
-    final models = widget.model == null ? await DatabaseService.getModelsForCode(widget.dtc.code) : null;
+    final links = await DatabaseService.it.getDtcDocumentLinks(widget.dtc.code, model: widget.model);
+    final models = widget.model == null ? await DatabaseService.it.getModelsForCode(widget.dtc.code) : null;
     if (mounted) setState(() { _links = links; _allModels = models; });
   }
 

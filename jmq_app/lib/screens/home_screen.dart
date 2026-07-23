@@ -20,8 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _load() async {
-    final s = await DatabaseService.getStats();
-    final d = await DatabaseService.getDatabaseSize();
+    final s = await DatabaseService.it.getStats();
+    final d = await DatabaseService.it.getDatabaseSize();
     if (mounted) setState(() { _stats = s; _dbSize = d / 1024 / 1024; });
   }
 

@@ -48,7 +48,7 @@ class _FullTextSearchScreenState extends State<FullTextSearchScreen> {
     final q = _controller.text.trim();
     if (q.isEmpty) return;
     setState(() { _loading = true; _searched = true; _results = []; });
-    final list = await DatabaseService.searchDocuments(q);
+    final list = await DatabaseService.it.searchDocuments(q);
     if (mounted) setState(() { _results = list; _loading = false; });
   }
 

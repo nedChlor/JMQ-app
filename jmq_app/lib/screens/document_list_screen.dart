@@ -22,7 +22,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
   }
 
   void _load() async {
-    final list = await DatabaseService.getDocuments(categoryId: widget.category.id);
+    final list = await DatabaseService.it.getDocuments(categoryId: widget.category.id);
     if (mounted) setState(() => _docs = list);
   }
 

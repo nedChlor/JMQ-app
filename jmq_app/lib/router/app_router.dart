@@ -10,26 +10,26 @@ import '../models/category.dart';
 final appRouter = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
+    GoRoute(path: '/', builder: (context, _) => const HomeScreen()),
     GoRoute(
       path: '/dtc',
-      builder: (_, state) => DTCDetailScreen(code: state.extra as String?),
+      builder: (context, state) => DTCDetailScreen(code: state.extra as String?),
     ),
-    GoRoute(path: '/categories', builder: (_, _) => const CategoriesScreen()),
+    GoRoute(path: '/categories', builder: (context, _) => const CategoriesScreen()),
     GoRoute(
       path: '/search',
-      builder: (_, state) => FullTextSearchScreen(initialQuery: state.extra as String?),
+      builder: (context, state) => FullTextSearchScreen(initialQuery: state.extra as String?),
     ),
     GoRoute(
       path: '/documents/:id',
-      builder: (_, state) {
+      builder: (context, state) {
         final cat = state.extra as Category;
         return DocumentListScreen(category: cat);
       },
     ),
     GoRoute(
       path: '/pdf',
-      builder: (_, state) {
+      builder: (context, state) {
         final data = state.extra as Map<String, String>;
         return PdfViewerScreen(pdfAssetPath: data['path']!, title: data['title']!);
       },
