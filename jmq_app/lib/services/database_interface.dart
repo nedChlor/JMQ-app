@@ -18,7 +18,5 @@ abstract class DatabaseInterface {
   Future<Map<int, int>> getDocumentCountPerCategory();
   Future<List<String>> getModelsForCode(String code);
   Future<Set<int>> getDocIdsForModel(String model);
-  Future<Set<int>> getCategoryIdsForModel(String model);
-  Future<List<Map<String, dynamic>>> getDtcDocumentLinks(String code, {String? model});
   Future<Map<String, dynamic>?> getDocumentById(int id);
 }

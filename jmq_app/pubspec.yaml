@@ -24,4 +24,15 @@ flutter:
   uses-material-design: true
   assets:
     - assets/db/jmq_service_manual_v4.db
-    - assets/pdf/
+    - assets/pdf/01_Engine/HFC4GB2.4D/
+    - assets/pdf/01_Engine/HFC4GB2.4E/
+    - assets/pdf/02_Transmission/CVT_Punch/
+    - assets/pdf/02_Transmission/MF622D35/
+    - assets/pdf/03_Chassis/
+    - assets/pdf/04_Body/01_Structure/
+    - assets/pdf/04_Body/02_Electrical/
+    - assets/pdf/05_Electrical_Systems/01_Circuit_Diagrams/
+    - assets/pdf/05_Electrical_Systems/02_AVM/
+    - assets/pdf/05_Electrical_Systems/03_TPMS/
+    - assets/pdf/06_Calibration/
+    - assets/pdf/99_Firmware_Updates/MP5/

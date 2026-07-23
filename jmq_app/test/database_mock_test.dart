@@ -26,8 +26,6 @@ class MockDatabase implements DatabaseInterface {
   @override Future<Map<int, int>> getDocumentCountPerCategory() async => {};
   @override Future<List<String>> getModelsForCode(String code) async => [];
   @override Future<Set<int>> getDocIdsForModel(String model) async => {1, 2, 3};
-  @override Future<Set<int>> getCategoryIdsForModel(String model) async => {};
-  @override Future<List<Map<String, dynamic>>> getDtcDocumentLinks(String code, {String? model}) async => [];
   @override Future<Map<String, dynamic>?> getDocumentById(int id) async => null;
 }
 

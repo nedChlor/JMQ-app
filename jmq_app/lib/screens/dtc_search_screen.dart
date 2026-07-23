@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:path/path.dart' as p;
 import '../models/dtc_code.dart';
 import '../models/vehicle.dart';
 import '../services/database_service.dart';
@@ -368,19 +366,17 @@ class _DtCDetailWidget extends StatefulWidget {
 }
 
 class _DtCDetailWidgetState extends State<_DtCDetailWidget> {
-  List<Map<String, dynamic>>? _links;
   List<String>? _allModels;
 
   @override
   void initState() {
     super.initState();
-    _loadExtra();
+    _loadModels();
   }
 
-  void _loadExtra() async {
-    final links = await DatabaseService.it.getDtcDocumentLinks(widget.dtc.code, model: widget.model);
+  void _loadModels() async {
     final models = widget.model == null ? await DatabaseService.it.getModelsForCode(widget.dtc.code) : null;
-    if (mounted) setState(() { _links = links; _allModels = models; });
+    if (mounted) setState(() => _allModels = models);
   }
 
   Widget _buildModelLabel(ThemeData t) {
@@ -494,52 +490,7 @@ class _DtCDetailWidgetState extends State<_DtCDetailWidget> {
             ),
           ),
         const SizedBox(height: 20),
-        Row(
-          children: [
-            const Icon(Icons.description_outlined, size: 20),
-            const SizedBox(width: 8),
-            Text('Связанные документы', style: t.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (_links == null)
-          const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
-        else if (_links!.isEmpty)
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Нет связанных документов для этого кода'),
-            ),
-          )
-        else
-          ..._links!.map((l) {
-            final path = _buildPdfPath(l['relative_path'] as String? ?? '');
-            return Card(
-              margin: const EdgeInsets.only(bottom: 6),
-              child: ListTile(
-                onTap: () => context.push('/pdf', extra: {'path': path, 'title': l['title_ru'] as String? ?? ''}),
-                leading: CircleAvatar(
-                  backgroundColor: Colors.red.withAlpha(20),
-                  child: const Icon(Icons.picture_as_pdf, size: 20, color: Colors.red),
-                ),
-                title: Text(l['title_ru'] as String? ?? '', style: const TextStyle(fontSize: 14)),
-                subtitle: Text(_snippet(l['snippet_text'] as String?), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
-                trailing: const Icon(Icons.open_in_new, size: 18, color: Colors.grey),
-              ),
-            );
-          }),
-        const SizedBox(height: 40),
       ],
     );
-  }
-
-  String _buildPdfPath(String relPath) {
-    return 'assets/pdf/${p.setExtension(p.basename(relPath.replaceAll('\\', '/')), '.pdf')}';
-  }
-
-  String _snippet(String? t) {
-    if (t == null || t.isEmpty) return '';
-    return t.length > 100 ? '${t.substring(0, 100)}...' : t;
   }
 }

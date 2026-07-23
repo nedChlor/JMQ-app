@@ -3,13 +3,13 @@
 Build search infrastructure for the app.
 Adds:
 1. ecu_categories table — ECU → category mapping for fast JOINs
-2. dtc_document_links — exact code matches in document text (when available)
-3. Search view for the Flutter app
+2. Search view for the Flutter app
 """
-import sqlite3, re, time
-from collections import defaultdict
+import sqlite3, re
+from pathlib import Path
 
-DB_PATH = r'C:\Users\nedch\Documents\JMQ App\app_assets\db\jmq_service_manual.db'
+PROJECT = Path(__file__).resolve().parent.parent.parent
+DB_PATH = PROJECT / 'app_assets' / 'db' / 'jmq_service_manual.db'
 
 conn = sqlite3.connect(DB_PATH)
 conn.execute('PRAGMA synchronous=OFF')
@@ -57,65 +57,9 @@ conn.commit()
 
 print(f'ECU categories: {conn.execute("SELECT COUNT(*) FROM ecu_categories").fetchone()[0]} mappings')
 
-# ============================================================
-# 2. Rebuild dtc_document_links with regex approach
-# ============================================================
-conn.execute('DROP TABLE IF EXISTS dtc_document_links')
-conn.execute('''
-    CREATE TABLE dtc_document_links (
-        id INTEGER PRIMARY KEY,
-        code TEXT NOT NULL,
-        vehicle_model TEXT NOT NULL,
-        document_id INTEGER NOT NULL,
-        snippet_text TEXT DEFAULT '',
-        FOREIGN KEY (document_id) REFERENCES documents(id)
-    )
-''')
-
-rows = conn.execute("SELECT code, vehicle_model, ecu FROM dtc_codes").fetchall()
-code_map = defaultdict(list)
-for code, model, ecu in rows:
-    code_map[code.upper()].append((model, ecu))
-
-unique_codes = sorted(code_map.keys(), key=len, reverse=True)
-code_pattern = re.compile(r'\b(' + '|'.join(re.escape(c) for c in unique_codes) + r')\b')
-
-docs = conn.execute("SELECT id, category_id, content_text FROM documents").fetchall()
-print(f'Scanning {len(docs)} documents for DTC codes...')
-
-start = time.time()
-link_id = 0
-for doc_id, cat_id, text in docs:
-    if not text:
-        continue
-    seen = set()
-    for m in code_pattern.finditer(text):
-        code = m.group(1).upper()
-        for model, ecu in code_map[code]:
-            cats = set(ECU_CATS.get(ecu, ECU_CATS.get('DEFAULT', [6, 7, 8])))
-            if cat_id not in cats:
-                continue
-            key = (code, model)
-            if key in seen:
-                continue
-            seen.add(key)
-            link_id += 1
-            s = max(0, m.start() - 80)
-            e = min(len(text), m.end() + 80)
-            snip = ('...' if s > 0 else '') + text[s:e].replace('\n', ' ') + ('...' if e < len(text) else '')
-            conn.execute(
-                "INSERT INTO dtc_document_links (id, code, vehicle_model, document_id, snippet_text) "
-                "VALUES (?, ?, ?, ?, ?)",
-                (link_id, code, model, doc_id, snip)
-            )
-
-conn.commit()
-elapsed = time.time() - start
-exact_links = conn.execute('SELECT COUNT(*) FROM dtc_document_links').fetchone()[0]
-print(f'Exact matches built in {elapsed:.1f}s: {exact_links} links')
 
 # ============================================================
-# 3. Create search view
+# 2. Create search view
 # ============================================================
 conn.execute('DROP VIEW IF EXISTS dtc_search')
 conn.execute('''
@@ -126,27 +70,17 @@ conn.execute('''
         c.ecu,
         c.meaning_en,
         c.meaning_ru,
-        c.dtc_type,
-        dl.document_id,
-        dl.snippet_text AS doc_snippet,
-        d.title_ru AS doc_title,
-        d.category_id,
-        ec.category_id AS matched_category
+        c.dtc_type
     FROM dtc_codes c
-    LEFT JOIN ecu_categories ec ON ec.ecu = c.ecu
-    LEFT JOIN dtc_document_links dl ON dl.code = c.code AND dl.vehicle_model = c.vehicle_model
-    LEFT JOIN documents d ON d.id = dl.document_id
 ''')
 
 # ============================================================
-# 4. Indexes for speed
+# 3. Indexes for speed
 # ============================================================
-conn.execute('CREATE INDEX IF NOT EXISTS idx_dcl_lookup ON dtc_document_links(code, vehicle_model)')
-conn.execute('CREATE INDEX IF NOT EXISTS idx_dcl_doc ON dtc_document_links(document_id)')
 conn.execute('CREATE INDEX IF NOT EXISTS idx_ecu_cats_ecu ON ecu_categories(ecu)')
 
 # ============================================================
-# 5. Document → Model mapping
+# 4. Document → Model mapping
 # ============================================================
 conn.execute('DROP TABLE IF EXISTS document_models')
 conn.execute('''
@@ -166,7 +100,7 @@ print(f'Document models: {len(doc_ids)} documents for J7')
 conn.commit()
 
 # ============================================================
-# 6. Example queries (verify)
+# 5. Example queries (verify)
 # ============================================================
 print('\n=== Search demo ===')
 print('\nScenario: User enters P0765 + J7')
@@ -228,15 +162,6 @@ if dtc:
                     print(f'    [{rank:.0f}] {title[:50]}')
                     print(f'          ...{snip[:70]}...')
 
-# Also test exact match
-print('\n=== Exact match example (code appears in text) ===')
-exact = conn.execute(
-    "SELECT dl.code, d.title_ru, dl.snippet_text FROM dtc_document_links dl "
-    "JOIN documents d ON d.id = dl.document_id LIMIT 3"
-).fetchall()
-for code, title, snip in exact:
-    print(f'  [{code}] {title[:40]}')
-    print(f'    ...{snip[:60]}...')
 
 conn.close()
 print('\nDone!')

@@ -199,38 +199,6 @@ class DatabaseService implements DatabaseInterface {
   }
 
   @override
-  Future<Set<int>> getCategoryIdsForModel(String model) async {
-    final db = await database;
-    final rows = await db.rawQuery('''
-      SELECT DISTINCT d.category_id
-      FROM dtc_document_links dl
-      JOIN documents d ON d.id = dl.document_id
-      WHERE dl.vehicle_model = ?
-    ''', [model]);
-    return rows.map((r) => r['category_id'] as int).toSet();
-  }
-
-  Future<List<Map<String, dynamic>>> getDtcDocumentLinks(String code, {String? model}) async {
-    final db = await database;
-    if (model == null) {
-      return db.rawQuery('''
-        SELECT dl.snippet_text, d.id as doc_id, d.title_ru, d.file_type, d.relative_path, dl.vehicle_model
-        FROM dtc_document_links dl
-        JOIN documents d ON d.id = dl.document_id
-        WHERE dl.code = ?
-        LIMIT 10
-      ''', [code]);
-    }
-    return db.rawQuery('''
-      SELECT dl.snippet_text, d.id as doc_id, d.title_ru, d.file_type, d.relative_path
-      FROM dtc_document_links dl
-      JOIN documents d ON d.id = dl.document_id
-      WHERE dl.code = ? AND dl.vehicle_model = ?
-      LIMIT 10
-    ''', [code, model]);
-  }
-
-  @override
   Future<Map<String, dynamic>?> getDocumentById(int id) async {
     final db = await database;
     final rows = await db.query('documents', where: 'id = ?', whereArgs: [id], limit: 1);

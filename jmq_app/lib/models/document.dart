@@ -36,6 +36,15 @@ class Document {
       );
 
   String get pdfAssetPath {
+    // Use relative_path (e.g. "01_Engine\HFC4GB2.4D\01.01...docx")
+    // to build nested PDF path: "assets/pdf/01_Engine/HFC4GB2.4D/01.01....pdf"
+    if (relativePath != null && relativePath!.isNotEmpty) {
+      // Normalize backslashes to forward slashes for cross-platform (Android/iOS)
+      final normalPath = relativePath!.replaceAll('\\', '/');
+      final stem = p.setExtension(normalPath, '.pdf');
+      return 'assets/pdf/$stem';
+    }
+    // Fallback for documents without relative_path
     final name = originalFilename ?? '';
     final stem = p.setExtension(name, '.pdf');
     return 'assets/pdf/$stem';

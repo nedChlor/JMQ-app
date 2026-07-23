@@ -1,11 +1,25 @@
 """Convert all DOCX/PPTX to PDF using LibreOffice."""
-import subprocess
+import shutil, subprocess
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
 SRC = PROJECT / 'src' / 'data_raw' / 'documents'
 OUT = PROJECT / 'app_assets' / 'pdf'
-SOFFICE = r'C:\Program Files\LibreOffice\program\soffice.exe'
+
+# Try to find soffice in PATH first, then fall back to common locations
+SOFFICE = shutil.which('soffice')
+if SOFFICE is None:
+    candidates = [
+        r'C:\Program Files\LibreOffice\program\soffice.exe',
+        r'C:\Program Files (x86)\LibreOffice\program\soffice.exe',
+        '/usr/bin/libreoffice',
+        '/usr/local/bin/libreoffice',
+    ]
+    SOFFICE = next((p for p in candidates if Path(p).exists()), None)
+
+if SOFFICE is None:
+    print('ERROR: LibreOffice not found. Install it or set SOFFICE env var.')
+    exit(1)
 
 converted, skipped = 0, 0
 
