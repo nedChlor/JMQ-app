@@ -13,7 +13,6 @@ abstract class DatabaseInterface {
   Future<List<DtcCode>> searchDtcFts(String query, {String? model, int limit});
   Future<List<DtcCode>> findDtcByPartialCode(String partial, {String? model, int limit});
   Future<List<DtcCode>> getAllDtc({String? model, int limit = 200});
-  Future<List<Document>> searchDocuments(String query);
   Future<Map<String, dynamic>> getStats();
   Future<int> getDatabaseSize();
   Future<Map<int, int>> getDocumentCountPerCategory();

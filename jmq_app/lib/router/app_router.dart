@@ -2,7 +2,6 @@ import 'package:go_router/go_router.dart';
 import '../screens/home_screen.dart';
 import '../screens/dtc_search_screen.dart';
 import '../screens/categories_screen.dart';
-import '../screens/fulltext_search_screen.dart';
 import '../screens/document_list_screen.dart';
 import '../screens/pdf_viewer_screen.dart';
 import '../models/category.dart';
@@ -16,10 +15,6 @@ final appRouter = GoRouter(
       builder: (context, state) => DTCDetailScreen(code: state.extra as String?),
     ),
     GoRoute(path: '/categories', builder: (context, _) => const CategoriesScreen()),
-    GoRoute(
-      path: '/search',
-      builder: (context, state) => FullTextSearchScreen(initialQuery: state.extra as String?),
-    ),
     GoRoute(
       path: '/documents/:id',
       builder: (context, state) {

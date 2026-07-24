@@ -37,17 +37,6 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Поиск по документам...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
-              ),
-              onSubmitted: (v) {
-                if (v.trim().isNotEmpty) context.push('/search', extra: v);
-              },
-            ),
             const SizedBox(height: 20),
             if (_stats != null)
               Wrap(

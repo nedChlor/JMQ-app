@@ -145,18 +145,6 @@ class DatabaseService implements DatabaseInterface {
     return rows.map((r) => DtcCode.fromMap(r)).toList();
   }
 
-  Future<List<Document>> searchDocuments(String query) async {
-    final db = await database;
-    final rows = await db.rawQuery('''
-      SELECT d.* FROM documents_fts f
-      JOIN documents d ON d.id = f.rowid
-      WHERE documents_fts MATCH ?
-      ORDER BY rank
-      LIMIT 20
-    ''', [query]);
-    return rows.map((r) => Document.fromMap(r)).toList();
-  }
-
   @override
   Future<Map<String, dynamic>> getStats() async {
     final db = await database;

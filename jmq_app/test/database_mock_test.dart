@@ -20,7 +20,6 @@ class MockDatabase implements DatabaseInterface {
   @override Future<List<DtcCode>> searchDtc(String query, {String? model, int limit = 50}) async => [];
   @override Future<List<DtcCode>> searchDtcFts(String query, {String? model, int limit = 50}) async => [];
   @override Future<List<DtcCode>> findDtcByPartialCode(String partial, {String? model, int limit = 20}) async => [];
-  @override Future<List<Document>> searchDocuments(String query) async => [];
   @override Future<Map<String, dynamic>> getStats() async => {'vehicles': 2, 'categories': 3, 'documents': 5, 'dtc': 9505};
   @override Future<int> getDatabaseSize() async => 8000000;
   @override Future<Map<int, int>> getDocumentCountPerCategory() async => {};
