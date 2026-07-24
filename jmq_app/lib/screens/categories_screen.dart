@@ -162,7 +162,7 @@ class _CategoryTileState extends State<_CategoryTile> {
                     leading: CircleAvatar(child: const Icon(Icons.picture_as_pdf, size: 18)),
                     title: Text(d.titleRu ?? d.titleEn ?? '', style: const TextStyle(fontSize: 13)),
                     dense: true,
-                    trailing: const Icon(Icons.open_in_new, size: 16, color: Colors.grey),
+                    trailing: const Icon(Icons.open_in_new, size: 16, color: Color(0xFF888888)),
                     onTap: () => context.push('/pdf', extra: {'path': d.pdfAssetPath, 'title': d.titleRu ?? d.titleEn ?? ''}),
                   );
                 }),

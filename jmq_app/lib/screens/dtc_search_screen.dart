@@ -183,7 +183,7 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
           const SizedBox(width: 8),
           FilledButton.icon(
             onPressed: _searching ? null : _doSearch,
-            icon: _searching ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.search),
+            icon: _searching ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onPrimary)) : const Icon(Icons.search),
             label: const Text('Найти', style: TextStyle(fontSize: 16)),
           ),
         ],
@@ -197,7 +197,7 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
         children: [
-          const Icon(Icons.directions_car_outlined, size: 20, color: Colors.grey),
+          const Icon(Icons.directions_car_outlined, size: 20, color: Color(0xFF888888)),
           const SizedBox(width: 8),
           ActionChip(
             avatar: const Icon(Icons.public, size: 18),
@@ -230,11 +230,11 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.warning_amber_rounded, size: 72, color: Colors.orange),
+            const Icon(Icons.warning_amber_rounded, size: 72, color: Colors.white),
             const SizedBox(height: 16),
             Text(_error!, style: t.textTheme.titleLarge),
             const SizedBox(height: 8),
-            Text('Проверьте правильность кода или попробуйте поиск по тексту', style: t.textTheme.bodyMedium?.copyWith(color: Colors.grey)),
+            Text('Проверьте правильность кода или попробуйте поиск по тексту', style: t.textTheme.bodyMedium?.copyWith(color: Color(0xFF888888))),
           ],
         ),
       );
@@ -256,9 +256,9 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
           const SizedBox(height: 16),
           Text('Поиск DTC-кодов', style: t.textTheme.titleLarge),
           const SizedBox(height: 8),
-          Text('Введите код неисправности в поле выше', style: t.textTheme.bodyMedium?.copyWith(color: Colors.grey)),
+          Text('Введите код неисправности в поле выше', style: t.textTheme.bodyMedium?.copyWith(color: Color(0xFF888888))),
           const SizedBox(height: 24),
-          Text('Примеры: ${_codeExamples()}', style: t.textTheme.bodySmall?.copyWith(color: Colors.grey.shade500)),
+          Text('Примеры: ${_codeExamples()}', style: t.textTheme.bodySmall?.copyWith(color: Color(0xFF666666))),
         ],
       ),
     );
@@ -276,7 +276,7 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, top: 8, bottom: 4),
-          child: Text('Подсказки', style: t.textTheme.labelMedium?.copyWith(color: Colors.grey)),
+          child: Text('Подсказки', style: t.textTheme.labelMedium?.copyWith(color: Color(0xFF888888))),
         ),
         ..._suggestions.map((d) => _ResultCard(dtc: d, model: _selectedModel, onTap: () => _openDetail(d))),
       ],
@@ -290,7 +290,7 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
         Padding(
           padding: const EdgeInsets.only(left: 4, top: 8, bottom: 4),
           child: Text('${_results.length} ${_plural(_results.length, 'результат', 'результата', 'результатов')}',
-              style: t.textTheme.labelMedium?.copyWith(color: Colors.grey)),
+              style: t.textTheme.labelMedium?.copyWith(color: Color(0xFF888888))),
         ),
         ..._results.map((d) => _ResultCard(dtc: d, model: _selectedModel, onTap: () => _openDetail(d))),
       ],
@@ -361,10 +361,10 @@ class _ResultCard extends StatelessWidget {
               if (model == null)
                 Padding(
                   padding: const EdgeInsets.only(left: 8),
-                  child: Text(dtc.vehicleModel, style: t.textTheme.bodySmall?.copyWith(color: Colors.grey, fontWeight: FontWeight.w600)),
+                  child: Text(dtc.vehicleModel, style: t.textTheme.bodySmall?.copyWith(color: Color(0xFF888888), fontWeight: FontWeight.w600)),
                 ),
               const SizedBox(width: 4),
-              const Icon(Icons.chevron_right, color: Colors.grey),
+              const Icon(Icons.chevron_right, color: Color(0xFF666666)),
             ],
           ),
         ),
@@ -372,9 +372,10 @@ class _ResultCard extends StatelessWidget {
     );
   }
 
-  Color _typeColor(String t) {
-    switch (t) { case 'P': return Colors.blue; case 'B': return Colors.orange; case 'C': return Colors.teal; case 'U': return Colors.purple; case 'H': return Colors.brown; default: return Colors.grey; }
-  }
+}
+
+Color _typeColor(String t) {
+  switch (t) { case 'P': return Colors.blue; case 'B': return Colors.orange; case 'C': return Colors.teal; case 'U': return Colors.purple; case 'H': return Colors.brown; default: return Colors.grey; }
 }
 
 class _DtCDetailWidget extends StatefulWidget {
@@ -453,13 +454,25 @@ class _DtCDetailWidgetState extends State<_DtCDetailWidget> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Chip(label: Text(dtc.ecu, style: const TextStyle(fontWeight: FontWeight.w600)), avatar: const Icon(Icons.memory, size: 16)),
+                        Chip(
+                          label: Text(dtc.ecu, style: TextStyle(fontWeight: FontWeight.w600, color: t.colorScheme.onSecondaryContainer)),
+                          avatar: Icon(Icons.memory, size: 16, color: t.colorScheme.onSecondaryContainer),
+                          backgroundColor: t.colorScheme.secondaryContainer,
+                        ),
                         if (dtc.ecuVariant.isNotEmpty) ...[
                           const SizedBox(height: 4),
-                          Chip(label: Text(dtc.ecuVariant, style: const TextStyle(fontSize: 11)), avatar: const Icon(Icons.layers, size: 14)),
+                          Chip(
+                            label: Text(dtc.ecuVariant, style: TextStyle(fontSize: 11, color: t.colorScheme.onTertiaryContainer)),
+                            avatar: Icon(Icons.layers, size: 14, color: t.colorScheme.onTertiaryContainer),
+                            backgroundColor: t.colorScheme.tertiaryContainer,
+                          ),
                         ],
                         const SizedBox(height: 4),
-                        Chip(label: Text(dtc.dtcType, style: const TextStyle(fontWeight: FontWeight.w600)), avatar: const Icon(Icons.tag, size: 16)),
+                        Chip(
+                          label: Text(dtc.dtcType, style: TextStyle(fontWeight: FontWeight.w600, color: _typeColor(dtc.dtcType))),
+                          avatar: Icon(Icons.tag, size: 16, color: _typeColor(dtc.dtcType)),
+                          backgroundColor: _typeColor(dtc.dtcType).withAlpha(30),
+                        ),
                       ],
                     ),
                   ],
