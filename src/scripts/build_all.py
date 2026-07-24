@@ -224,7 +224,7 @@ def build_documents(src_dir, cat_dir_map):
 # 3. DTC EXTRACTION
 # =========================================================================
 import openpyxl
-DTC_RE = re.compile(r'^(?:0x[0-9A-Fa-f]+|[PBCU]\d{4,6})$')
+DTC_RE = re.compile(r'^(?:0x[0-9A-Fa-f]+|[PBCU][0-9A-Fa-f]{4,7})$')
 CJK_RE = re.compile(r'[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+')
 
 def split_cjk(text):
@@ -236,30 +236,38 @@ def split_cjk(text):
     cn = ' '.join(cjk_blocks).strip()
     return clean, cn
 
-ECU_NORMALIZE = {
-    'TBOX': 'TBOX', 'Tbox': 'TBOX',
-    'HVAC自动': 'HVAC', 'HVAC电动': 'HVAC',
-    'ICM华阳': 'ICM', 'ICM天有为': 'ICM', 'ICM新通达': 'ICM', 'ICM华东汽电': 'ICM', 'ICM_XTD': 'ICM',
-    'EMS GH523': 'EMS', 'EMS GH524': 'EMS', 'EMS GH528': 'EMS',
-    'EMS GH164': 'EMS', 'EMS GH165': 'EMS',
-    'TCU大陆': 'TCU', 'TCU联电': 'TCU',
-    'ESC_KM': 'ESP',
-}
-
-def normalize_ecu(ecu):
-    if ecu in ECU_NORMALIZE:
-        return ECU_NORMALIZE[ecu]
-    for k, v in ECU_NORMALIZE.items():
-        if k.lower() in ecu.lower():
-            return v
-    cleaned = re.sub(r'[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+', '', ecu).strip()
-    return cleaned or ecu
+def split_ecu_name(raw):
+    if not raw:
+        return None, None
+    raw = raw.strip()
+    base_overrides = {'ESC_KM': 'ESP', 'Tbox': 'TBOX', 'TBOX': 'TBOX', 'ABS': 'ABS'}
+    if raw in base_overrides:
+        return base_overrides[raw], None
+    raw_upper = raw.upper()
+    if raw_upper in base_overrides:
+        return base_overrides[raw_upper], None
+    m = re.match(r'^([A-Za-z0-9_]+)([\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+)$', raw)
+    if m:
+        return m.group(1).upper(), m.group(2)
+    m = re.match(r'^([A-Za-z0-9_]+)\s+(.+)$', raw)
+    if m:
+        base = m.group(1).upper()
+        variant = m.group(2).strip()
+        v_alpha = re.sub(r'[\u4e00-\u9fff]+', '', variant).strip()
+        if v_alpha:
+            return base, v_alpha
+        return base, variant
+    cleaned = re.sub(r'[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+', '', raw).strip()
+    return cleaned.upper() or raw.upper(), None
 
 def parse_sheet(name):
     n = name.strip().lower()
     for hp in ('4de', 'isf', 'b4.'):
         if n.startswith(hp):
             return None, None
+    direct = {'J7 PLUS': 'J7PLUS'}
+    if name.strip() in direct:
+        return direct[name.strip()], None
     prefix_map = {
         'j7-': 'J7', 'j7plus': 'J7PLUS', 'js4-': 'JS4', 'js7-': 'JS7',
         'js8-': 'JS8', 'js6': 'JS6', 'k7-': 'K7', 'sunray-': 'Sunray', 'es2-': 'eS2',
@@ -320,16 +328,16 @@ def extract_sheet(ws, sheet, model, ecu_hint):
                     for rr in range(mr.min_row, mr.max_row + 1):
                         merged[rr] = str(v).strip()
 
-    current_ecu = ecu_hint
+    current_ecu_raw = ecu_hint
     for r in range(data_start, max_row + 1):
         if has_ecu_col:
             if r in merged:
-                current_ecu = normalize_ecu(merged[r])
+                current_ecu_raw = merged[r]
             else:
                 a = ws.cell(r, 1).value
                 if a and not str(a).strip().isdigit() and not DTC_RE.match(str(a).strip()):
-                    current_ecu = normalize_ecu(str(a).strip())
-        if current_ecu is None:
+                    current_ecu_raw = str(a).strip()
+        if current_ecu_raw is None:
             continue
 
         code = ws.cell(r, code_col).value
@@ -340,17 +348,24 @@ def extract_sheet(ws, sheet, model, ecu_hint):
         meaning_raw = ws.cell(r, meaning_col).value
         if not meaning_raw:
             meaning_raw = ws.cell(r, meaning_col + 1).value
+        if not meaning_raw and meaning_col > 1:
+            meaning_raw = ws.cell(r, meaning_col - 1).value
         meaning_raw = ' '.join(str(meaning_raw).split()) if meaning_raw else ''
-        meaning_en, meaning_cn = split_cjk(meaning_raw)
+        meaning_en, _ = split_cjk(meaning_raw)
+        if not meaning_en:
+            # try one more column to the right
+            if meaning_col + 2 <= max_col:
+                meaning_raw2 = ws.cell(r, meaning_col + 2).value
+                meaning_raw2 = ' '.join(str(meaning_raw2).split()) if meaning_raw2 else ''
+                meaning_en, _ = split_cjk(meaning_raw2)
         if not meaning_en:
             continue
 
-        ecu = normalize_ecu(current_ecu)
+        ecu, ecu_variant = split_ecu_name(current_ecu_raw)
         results.append({
-            'model': model, 'ecu': ecu,
+            'model': model, 'ecu': ecu, 'ecu_variant': ecu_variant or '',
             'code': code, 'dtc_type': 'H' if code[:2] == '0X' else code[0],
             'meaning_en': meaning_en,
-            'meaning_cn': meaning_cn,
         })
     return results
 
@@ -364,34 +379,36 @@ def build_dtc(xlsx_path):
         rows = extract_sheet(wb[sheet], sheet, model, ecu_hint)
         all_dtcs.extend(rows)
 
-    # Dedup by (model, ecu, code)
-    seen = set()
-    deduped = []
+    # Group by (model, code, meaning_en), merge ecus and variants
+    groups = {}
     for d in all_dtcs:
-        key = (d['model'], d['ecu'], d['code'])
-        if key not in seen:
-            seen.add(key)
-            deduped.append(d)
-    return deduped
+        key = (d['model'], d['code'], d['meaning_en'])
+        pair = (d['ecu'], d.get('ecu_variant', ''))
+        if key in groups:
+            groups[key]['_pairs'].add(pair)
+        else:
+            d['_pairs'] = {pair}
+            groups[key] = d
+
+    result = []
+    for d in groups.values():
+        pairs = d.pop('_pairs')
+        ecus = sorted(set(p[0] for p in pairs))
+        variants = sorted(set(p[1] for p in pairs if p[1]))
+        d['ecu'] = ', '.join(ecus)
+        d['ecu_variant'] = ','.join(variants)
+        result.append(d)
+    return result
 
 
 # =========================================================================
 # 4. BUILD COMBINED SQLite DATABASE
 # =========================================================================
 def build_db(documents, dtc_codes, categories):
-    db_path = OUT_DB / 'jmq_service_manual.db'
+    db_name = 'jmq_service_manual_v5.db'
+    db_path = OUT_DB / db_name
     
-    # Preserve existing translations before rebuild
-    existing_ru = {}
     if db_path.exists():
-        try:
-            old_conn = sqlite3.connect(str(db_path))
-            for row in old_conn.execute("SELECT code, vehicle_model, meaning_ru FROM dtc_codes WHERE meaning_ru != ''"):
-                existing_ru[(row[0], row[1])] = row[2]
-            old_conn.close()
-            print(f'   Preserved {len(existing_ru)} existing RU translations')
-        except:
-            pass
         db_path.unlink()
 
     conn = sqlite3.connect(str(db_path))
@@ -399,7 +416,6 @@ def build_db(documents, dtc_codes, categories):
     conn.execute('PRAGMA journal_mode=WAL')
     conn.execute('PRAGMA synchronous=NORMAL')
 
-    # Schema
     conn.execute('''CREATE TABLE vehicles (
         id INTEGER PRIMARY KEY, code TEXT UNIQUE NOT NULL, name_ru TEXT DEFAULT ''
     )''')
@@ -416,44 +432,31 @@ def build_db(documents, dtc_codes, categories):
     )''')
     conn.execute('''CREATE TABLE dtc_codes (
         id INTEGER PRIMARY KEY, vehicle_model TEXT NOT NULL,
-        ecu TEXT NOT NULL, code TEXT NOT NULL,
-        dtc_type TEXT NOT NULL, meaning_en TEXT NOT NULL, meaning_ru TEXT DEFAULT ''
+        ecu TEXT NOT NULL, ecu_variant TEXT DEFAULT '',
+        code TEXT NOT NULL, dtc_type TEXT NOT NULL, meaning_en TEXT NOT NULL
     )''')
 
-    # Vehicles
     models = sorted(set(d['model'] for d in dtc_codes))
     for m in models:
         conn.execute('INSERT OR IGNORE INTO vehicles (code) VALUES (?)', (m,))
 
-    # Categories
     for c in categories:
         conn.execute('INSERT INTO categories VALUES (?,?,?,?,?,?)',
                       (c['id'], c['name_ru'], c['name_en'], c.get('icon'),
                        c.get('parent_id'), c.get('sort_order', 0)))
 
-    # Documents
     data = [(d['id'], d['category_id'], d['title_ru'], d['title_en'],
              d['file_type'], d['original_filename'], d['relative_path'],
              d['content_text'], d['text_length'], d['file_size'])
             for d in documents]
     conn.executemany('INSERT INTO documents VALUES (?,?,?,?,?,?,?,?,?,?)', data)
 
-    # DTC codes
-    data = [(d['model'], d['ecu'], d['code'], d['dtc_type'], d['meaning_en'], d.get('meaning_cn', ''))
+    data = [(d['model'], d['ecu'], d.get('ecu_variant', ''), d['code'], d['dtc_type'], d['meaning_en'])
             for d in dtc_codes]
-    conn.executemany('INSERT INTO dtc_codes (vehicle_model, ecu, code, dtc_type, meaning_en, meaning_ru) VALUES (?,?,?,?,?,?)', data)
+    conn.executemany(
+        'INSERT INTO dtc_codes (vehicle_model, ecu, ecu_variant, code, dtc_type, meaning_en) VALUES (?,?,?,?,?,?)',
+        data)
 
-    # Restore preserved RU translations
-    if existing_ru:
-        restored = 0
-        for (code, model), ru_text in existing_ru.items():
-            conn.execute(
-                'UPDATE dtc_codes SET meaning_ru = ? WHERE code = ? AND vehicle_model = ?',
-                (ru_text, code, model))
-            restored += 1
-        print(f'   Restored {restored} RU translations')
-
-    # Indices
     conn.execute('CREATE INDEX idx_doc_category ON documents(category_id)')
     conn.execute('CREATE INDEX idx_doc_type ON documents(file_type)')
     conn.execute('CREATE INDEX idx_dtc_model ON dtc_codes(vehicle_model)')
@@ -461,22 +464,21 @@ def build_db(documents, dtc_codes, categories):
     conn.execute('CREATE INDEX idx_dtc_code ON dtc_codes(code)')
     conn.execute('CREATE INDEX idx_dtc_type ON dtc_codes(dtc_type)')
     conn.execute('CREATE INDEX idx_dtc_model_ecu ON dtc_codes(vehicle_model, ecu)')
+    conn.execute('CREATE INDEX idx_dtc_variant ON dtc_codes(ecu_variant)')
 
-    # FTS5
     conn.execute('''CREATE VIRTUAL TABLE documents_fts USING fts5(
         title_ru, title_en, content_text,
         content='documents', content_rowid='id', tokenize='unicode61'
     )''')
     conn.execute('''CREATE VIRTUAL TABLE dtc_fts USING fts5(
-        code, meaning_en, ecu, vehicle_model,
+        code, meaning_en, ecu, ecu_variant, vehicle_model,
         content='dtc_codes', content_rowid='id', tokenize='unicode61'
     )''')
     conn.execute("INSERT INTO documents_fts (rowid, title_ru, title_en, content_text) SELECT id, title_ru, title_en, content_text FROM documents")
-    conn.execute("INSERT INTO dtc_fts (rowid, code, meaning_en, ecu, vehicle_model) SELECT id, code, meaning_en, ecu, vehicle_model FROM dtc_codes")
+    conn.execute("INSERT INTO dtc_fts (rowid, code, meaning_en, ecu, ecu_variant, vehicle_model) SELECT id, code, meaning_en, ecu, ecu_variant, vehicle_model FROM dtc_codes")
     conn.execute("INSERT INTO documents_fts(documents_fts) VALUES('optimize')")
     conn.execute("INSERT INTO dtc_fts(dtc_fts) VALUES('optimize')")
 
-    # Verify
     doc_count = conn.execute('SELECT COUNT(*) FROM documents').fetchone()[0]
     dtc_count = conn.execute('SELECT COUNT(*) FROM dtc_codes').fetchone()[0]
     cat_count  = conn.execute('SELECT COUNT(*) FROM categories').fetchone()[0]
@@ -485,7 +487,7 @@ def build_db(documents, dtc_codes, categories):
     conn.close()
     print(f'\n  DB: {db_path}')
     print(f'  Vehicles: {veh_count}, Categories: {cat_count}, Documents: {doc_count}, DTC: {dtc_count}')
-    return db_path
+    return db_path, db_name
 
 
 # =========================================================================
@@ -514,38 +516,24 @@ def write_json(path, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def write_developer_outputs(categories, documents, dtc_codes, db_path=None):
-    # categories.json — app_assets
     write_json(OUT_APP / 'categories.json', categories)
 
-    # documents_meta.json — app_assets (no content_text)
     meta = []
     for d in documents:
         meta.append({k: d[k] for k in ['id', 'category_id', 'title_ru', 'title_en',
                                         'file_type', 'original_filename', 'text_length', 'file_size']})
     write_json(OUT_APP / 'documents_meta.json', meta)
 
-    # Load meaning_ru from DB if available
-    ru_map = {}
-    if db_path and db_path.exists():
-        conn = sqlite3.connect(str(db_path))
-        for r in conn.execute("SELECT code, meaning_ru FROM dtc_codes WHERE length(meaning_ru) > 0"):
-            ru_map[r[0]] = r[1]
-        conn.close()
-
-    # Build enriched DTC list with RU
     enriched = []
     for d in dtc_codes:
         entry = {
-            'model': d['model'], 'ecu': d['ecu'], 'code': d['code'],
-            'type': d['dtc_type'], 'meaning_en': d['meaning_en'],
-            'meaning_ru': ru_map.get(d['code'], ''),
+            'model': d['model'], 'ecu': d['ecu'], 'ecu_variant': d.get('ecu_variant', ''),
+            'code': d['code'], 'type': d['dtc_type'], 'meaning_en': d['meaning_en'],
         }
         enriched.append(entry)
 
-    # All DTC JSON — src/output
     write_json(OUT_DEV / 'dtc_all_models.json', enriched)
 
-    # DTC per model — src/output/json/
     dtc_json_dir = OUT_DEV / 'json'; dtc_json_dir.mkdir(exist_ok=True)
     by_model = defaultdict(list)
     for d in enriched:
@@ -553,47 +541,38 @@ def write_developer_outputs(categories, documents, dtc_codes, db_path=None):
     for model, codes in sorted(by_model.items()):
         write_json(dtc_json_dir / f'dtc_{model}.json', codes)
 
-    # CSV references — src/output/reference/
     csv_dir = OUT_DEV / 'reference'; csv_dir.mkdir(exist_ok=True)
     for model, codes in sorted(by_model.items()):
         path = csv_dir / f'dtc_{model}_reference.csv'
         with open(path, 'w', encoding='utf-8-sig', newline='') as f:
             w = csv.writer(f)
-            w.writerow(['ECU', 'Code', 'Type', 'English Meaning', 'Russian Meaning'])
-            by_ecu = defaultdict(list)
-            for c in codes: by_ecu[c['ecu']].append(c)
-            for ecu in sorted(by_ecu.keys()):
-                for c in by_ecu[ecu]:
-                    w.writerow([ecu, c['code'], c['type'], c['meaning_en'], c['meaning_ru']])
+            w.writerow(['ECU', 'Variant', 'Code', 'Type', 'Meaning'])
+            for c in codes:
+                w.writerow([c['ecu'], c.get('ecu_variant', ''), c['code'], c['type'], c['meaning_en']])
 
-    # Summary markdown — src/output/
     md_path = OUT_DEV / 'DTC_Reference_Manual.md'
     with open(md_path, 'w', encoding='utf-8') as f:
-        total_with_ru = sum(1 for d in enriched if d['meaning_ru'])
         f.write('# JMQ DTC Diagnostic Codes — Reference Manual\n\n')
-        f.write(f'> Total: **{len(enriched)}** codes | **{total_with_ru}** with RU | **{len(by_model)}** models\n\n')
-        f.write('## Models\n\n| Model | Codes | With RU |\n|------|------|--------|\n')
+        f.write(f'> Total: **{len(enriched)}** codes | **{len(by_model)}** models\n\n')
+        f.write('| Model | Codes |\n|------|------|\n')
         for m in sorted(by_model.keys()):
-            mru = sum(1 for d in by_model[m] if d['meaning_ru'])
-            f.write(f'| {m} | {len(by_model[m])} | {mru} |\n')
+            f.write(f'| {m} | {len(by_model[m])} |\n')
         f.write('\n## ECUs\n\n')
-        all_ecus = sorted(set(d['ecu'] for d in enriched))
-        for ecu in all_ecus:
-            f.write(f'### {ecu}\n\n')
+        all_ecus = sorted(set((d['ecu'], d.get('ecu_variant', '')) for d in enriched))
+        for ecu, variant in all_ecus:
+            label = ecu + (f' ({variant})' if variant else '')
+            f.write(f'### {label}\n\n')
             for m in sorted(by_model.keys()):
-                mc = [d for d in enriched if d['model'] == m and d['ecu'] == ecu]
+                mc = [d for d in enriched if d['model'] == m and d['ecu'] == ecu and d.get('ecu_variant', '') == variant]
                 if mc:
                     f.write(f'**{m}** ({len(mc)} codes)\n\n')
-                    f.write('| Code | English | Russian |\n|------|---------|--------|\n')
-                    for c in mc[:3]:
-                        ru = c['meaning_ru'][:60] if c['meaning_ru'] else '(no RU)'
-                        f.write(f'| {c["code"]} | {c["meaning_en"][:60]} | {ru} |\n')
-                    if len(mc) > 3:
-                        f.write(f'| ... | +{len(mc)-3} more | |\n')
+                    f.write('| Code | Meaning |\n|------|--------|\n')
+                    for c in mc[:5]:
+                        f.write(f'| {c["code"]} | {c["meaning_en"][:80]} |\n')
+                    if len(mc) > 5:
+                        f.write(f'| ... | +{len(mc)-5} more |\n')
                     f.write('\n')
-            f.write('---\n\n')
 
-    # Summary stats
     print(f'\nDeveloper outputs:')
     for f in sorted(OUT_DEV.rglob('*')):
         if f.is_file():
@@ -619,13 +598,13 @@ else:
     print(f'   Place dtc_source.xlsx in src/data_raw/ and re-run build_all.py')
 
 print('\n4. Building combined SQLite database...')
-build_db(documents, dtc_codes, categories)
+db_path, db_name = build_db(documents, dtc_codes, categories)
 
 print('\n5. Copying PDF files to app_assets...')
 copy_pdfs()
 
 print('\n6. Writing developer & app outputs...')
-write_developer_outputs(categories, documents, dtc_codes, db_path=OUT_DB / 'jmq_service_manual.db')
+write_developer_outputs(categories, documents, dtc_codes, db_path=db_path)
 
 print('\n7. Building DTC<->document cross-reference...')
 crossref_script = Path(__file__).resolve().parent / 'build_crossref.py'

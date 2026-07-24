@@ -9,7 +9,7 @@ import sqlite3, re
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
-DB_PATH = PROJECT / 'app_assets' / 'db' / 'jmq_service_manual.db'
+DB_PATH = PROJECT / 'app_assets' / 'db' / 'jmq_service_manual_v5.db'
 
 conn = sqlite3.connect(DB_PATH)
 conn.execute('PRAGMA synchronous=OFF')
@@ -68,8 +68,8 @@ conn.execute('''
         c.code,
         c.vehicle_model,
         c.ecu,
+        c.ecu_variant,
         c.meaning_en,
-        c.meaning_ru,
         c.dtc_type
     FROM dtc_codes c
 ''')
@@ -107,14 +107,13 @@ print('\nScenario: User enters P0765 + J7')
 
 # Step 1: Lookup DTC
 dtc = conn.execute(
-    "SELECT code, ecu, meaning_en, meaning_ru FROM dtc_codes WHERE code=? AND vehicle_model=?",
+    "SELECT code, ecu, meaning_en FROM dtc_codes WHERE code=? AND vehicle_model=?",
     ('P0765', 'J7')
 ).fetchall()
 if dtc:
-    code, ecu, en, ru = dtc[0]
+    code, ecu, en = dtc[0]
     print(f'  DTC: {code} | ECU: {ecu}')
     print(f'  EN:  {en}')
-    print(f'  RU:  {ru}')
 
     # Step 2: Get relevant categories
     cats = conn.execute("SELECT category_id FROM ecu_categories WHERE ecu=?", (ecu,)).fetchall()

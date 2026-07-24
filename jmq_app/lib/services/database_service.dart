@@ -18,7 +18,7 @@ class DatabaseService implements DatabaseInterface {
   static final DatabaseService _instance = DatabaseService._();
   DatabaseService._();
 
-  static const _dbName = 'jmq_service_manual_v4.db';
+  static const _dbName = 'jmq_service_manual_v5.db';
   Database? _db;
 
   Future<Database> get database async {
@@ -30,13 +30,9 @@ class DatabaseService implements DatabaseInterface {
   Future<Database> _init() async {
     final dir = await getApplicationDocumentsDirectory();
     final dbPath = p.join(dir.path, _dbName);
-    final exists = await databaseExists(dbPath);
-    if (!exists) {
-      final blob = await rootBundle.load('assets/db/$_dbName');
-      final buffer = blob.buffer;
-      await dir.create(recursive: true);
-      await File(dbPath).writeAsBytes(buffer.asUint8List(blob.offsetInBytes, blob.lengthInBytes));
-    }
+    final blob = await rootBundle.load('assets/db/$_dbName');
+    await dir.create(recursive: true);
+    await File(dbPath).writeAsBytes(blob.buffer.asUint8List(blob.offsetInBytes, blob.lengthInBytes));
     return openDatabase(dbPath, readOnly: true);
   }
 
@@ -93,8 +89,8 @@ class DatabaseService implements DatabaseInterface {
       if (exact.isNotEmpty) return exact.map((r) => DtcCode.fromMap(r)).toList();
     }
 
-    var where = 'code LIKE ? OR meaning_en LIKE ? OR meaning_ru LIKE ?';
-    var args = <String>['%$query%', '%$query%', '%$query%'];
+    var where = '(code LIKE ? OR meaning_en LIKE ?)';
+    var args = <String>['%$query%', '%$query%'];
     if (model != null) { where += ' AND vehicle_model = ?'; args.add(model); }
 
     final rows = await db.query('dtc_codes', where: where, whereArgs: args,
@@ -132,6 +128,20 @@ class DatabaseService implements DatabaseInterface {
     if (model != null) { where += ' AND vehicle_model = ?'; args.add(model); }
     final rows = await db.query('dtc_codes', where: where, whereArgs: args,
         limit: limit, orderBy: 'length(code) ASC');
+    return rows.map((r) => DtcCode.fromMap(r)).toList();
+  }
+
+  @override
+  Future<List<DtcCode>> getAllDtc({String? model, int limit = 200}) async {
+    final db = await database;
+    if (model != null) {
+      final rows = await db.query('dtc_codes',
+          where: 'vehicle_model = ?', whereArgs: [model],
+          limit: limit, orderBy: 'code');
+      return rows.map((r) => DtcCode.fromMap(r)).toList();
+    }
+    final rows = await db.query('dtc_codes',
+        limit: limit, orderBy: 'vehicle_model, code');
     return rows.map((r) => DtcCode.fromMap(r)).toList();
   }
 

@@ -23,7 +23,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/db/jmq_service_manual_v4.db
+    - assets/db/jmq_service_manual_v5.db
     - assets/pdf/01_Engine/HFC4GB2.4D/
     - assets/pdf/01_Engine/HFC4GB2.4E/
     - assets/pdf/02_Transmission/CVT_Punch/

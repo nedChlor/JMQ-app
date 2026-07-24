@@ -35,6 +35,8 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
     if (widget.code != null) {
       _controller.text = widget.code!;
       _doSearch();
+    } else {
+      _loadAll();
     }
   }
 
@@ -50,6 +52,16 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
   void _loadVehicles() async {
     final v = await DatabaseService.it.getVehicles();
     if (mounted) setState(() => _vehicles = v);
+  }
+
+  Future<void> _loadAll() async {
+    setState(() => _searching = true);
+    try {
+      final list = await DatabaseService.it.getAllDtc(model: _selectedModel);
+      if (mounted) setState(() { _results = list; _searching = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = 'Ошибка загрузки: $e'; _searching = false; });
+    }
   }
 
   void _onTextChanged() {
@@ -75,7 +87,7 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
   Future<void> _doSearch() async {
     final q = _controller.text.trim();
     if (q.isEmpty) {
-      setState(() { _results = []; _detailItem = null; _error = null; });
+      _loadAll();
       return;
     }
     setState(() { _searching = true; _detailItem = null; _results = []; _suggestions = []; _error = null; });
@@ -96,9 +108,13 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
   }
 
   void _onModelChanged(String? m) {
-    setState(() => _selectedModel = m);
+    setState(() { _selectedModel = m; _results = []; _detailItem = null; _error = null; _suggestions = []; });
     final q = _controller.text.trim();
-    if (q.isNotEmpty) _doSearch();
+    if (q.isNotEmpty) {
+      _doSearch();
+    } else {
+      _loadAll();
+    }
   }
 
   void _openDetail(DtcCode dtc) {
@@ -150,6 +166,7 @@ class _DTCDetailScreenState extends State<DTCDetailScreen> {
                         onPressed: () {
                           _controller.clear();
                           setState(() { _results = []; _detailItem = null; _error = null; _suggestions = []; });
+                          _loadAll();
                         },
                       )
                     : null,
@@ -316,6 +333,10 @@ class _ResultCard extends StatelessWidget {
                         Text(dtc.code, style: t.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                         const SizedBox(width: 10),
                         Chip(label: Text(dtc.ecu, style: const TextStyle(fontSize: 11)), materialTapTargetSize: MaterialTapTargetSize.shrinkWrap, visualDensity: VisualDensity.compact, padding: EdgeInsets.zero),
+                        if (dtc.ecuVariant.isNotEmpty) ...[
+                          const SizedBox(width: 4),
+                          Chip(label: Text(dtc.ecuVariant, style: const TextStyle(fontSize: 10)), materialTapTargetSize: MaterialTapTargetSize.shrinkWrap, visualDensity: VisualDensity.compact, padding: EdgeInsets.zero),
+                        ],
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -329,7 +350,7 @@ class _ResultCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      dtc.meaningRu.isNotEmpty ? dtc.meaningRu : dtc.meaningEn,
+                      dtc.meaningEn,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: t.textTheme.bodyMedium,
@@ -433,6 +454,10 @@ class _DtCDetailWidgetState extends State<_DtCDetailWidget> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Chip(label: Text(dtc.ecu, style: const TextStyle(fontWeight: FontWeight.w600)), avatar: const Icon(Icons.memory, size: 16)),
+                        if (dtc.ecuVariant.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Chip(label: Text(dtc.ecuVariant, style: const TextStyle(fontSize: 11)), avatar: const Icon(Icons.layers, size: 14)),
+                        ],
                         const SizedBox(height: 4),
                         Chip(label: Text(dtc.dtcType, style: const TextStyle(fontWeight: FontWeight.w600)), avatar: const Icon(Icons.tag, size: 16)),
                       ],
@@ -448,47 +473,20 @@ class _DtCDetailWidgetState extends State<_DtCDetailWidget> {
                   ),
                   child: _buildModelLabel(t),
                 ),
-                if (dtc.meaningRu.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Container(width: 4, height: 20, decoration: BoxDecoration(color: t.colorScheme.primary, borderRadius: BorderRadius.circular(2))),
-                      const SizedBox(width: 8),
-                      Text('Описание', style: t.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(dtc.meaningRu, style: t.textTheme.bodyLarge?.copyWith(height: 1.5)),
-                ],
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Container(width: 4, height: 20, decoration: BoxDecoration(color: Colors.grey.shade400, borderRadius: BorderRadius.circular(2))),
+                    Container(width: 4, height: 20, decoration: BoxDecoration(color: t.colorScheme.primary, borderRadius: BorderRadius.circular(2))),
                     const SizedBox(width: 8),
-                    Text('EN', style: t.textTheme.titleSmall?.copyWith(color: Colors.grey)),
+                    Text('Описание', style: t.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(dtc.meaningEn, style: t.textTheme.bodyMedium?.copyWith(height: 1.4, color: Colors.grey.shade700)),
+                const SizedBox(height: 8),
+                Text(dtc.meaningEn, style: t.textTheme.bodyLarge?.copyWith(height: 1.5)),
               ],
             ),
           ),
         ),
-        if (dtc.meaningRu.isEmpty)
-          Card(
-            color: Colors.orange.shade50,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: const Padding(
-              padding: EdgeInsets.all(14),
-              child: Row(
-                children: [
-                  Icon(Icons.translate, color: Colors.orange),
-                  SizedBox(width: 10),
-                  Expanded(child: Text('Русский перевод уточняется', style: TextStyle(color: Colors.orange))),
-                ],
-              ),
-            ),
-          ),
         const SizedBox(height: 20),
       ],
     );
